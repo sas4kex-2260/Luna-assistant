@@ -1,0 +1,1 @@
+Richa includes Vosk Android and the Vosk English model, distributed under the Apache License 2.0. The project also uses JNA, distributed under its applicable license terms. Review the upstream licenses before redistribution.
