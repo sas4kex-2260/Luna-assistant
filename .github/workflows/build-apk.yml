@@ -26,6 +26,17 @@ jobs:
         with:
           gradle-version: '8.13'
 
+      - name: Download offline Vosk model
+        working-directory: Richa
+        run: |
+          mkdir -p app/src/main/assets
+          curl -L --fail --retry 3 -o /tmp/vosk-model.zip https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+          rm -rf /tmp/vosk-model
+          mkdir -p /tmp/vosk-model
+          unzip -q /tmp/vosk-model.zip -d /tmp/vosk-model
+          rm -rf app/src/main/assets/model-en-us
+          mv /tmp/vosk-model/vosk-model-small-en-us-0.15 app/src/main/assets/model-en-us
+
       - name: Build debug APK
         working-directory: Richa
         run: gradle --no-daemon :app:assembleDebug
