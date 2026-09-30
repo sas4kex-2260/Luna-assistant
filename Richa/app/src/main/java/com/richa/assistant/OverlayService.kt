@@ -16,7 +16,7 @@ class OverlayService : Service() {
         super.onCreate()
         if (!Settings.canDrawOverlays(this)) return
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        val root = layoutInflater.inflate(R.layout.overlay_richa, FrameLayout(this), false)
+        val root = LayoutInflater.from(this).inflate(R.layout.overlay_richa, FrameLayout(this), false)
         view = root
         val params = WindowManager.LayoutParams(
             64.dp(), 64.dp(),
