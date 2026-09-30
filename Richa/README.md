@@ -17,7 +17,5 @@ Richa is designed as a lightweight, offline-first Android voice assistant.
 ## Important Android limits
 Richa cannot bypass Android's security sandbox, read passwords from secure apps, or silently control every protected system function. Features requiring special permissions are requested explicitly.
 
-## Build an installable APK
-This repository includes `.github/workflows/build-apk.yml`. On GitHub, run **Actions → Build Richa APK → Run workflow**. The workflow builds `app-debug.apk` and uploads it as an artifact.
-
-A local Android SDK + JDK 17 + Gradle 8.13 environment is required for local compilation.
+## Build
+GitHub Actions builds the debug APK from the Richa project directory and uploads it as a downloadable artifact.
