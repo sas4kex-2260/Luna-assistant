@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.Richa" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.Richa" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:fontFamily">sans</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:statusBarColor">@color/richa_bg</item>
