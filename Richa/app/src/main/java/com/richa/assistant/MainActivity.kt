@@ -10,6 +10,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
     private lateinit var status: TextView
@@ -17,15 +18,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var micState: TextView
     private lateinit var orbLabel: TextView
     private lateinit var memoryStatus: TextView
+    private var receiverRegistered = false
 
     private val permissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { result ->
-        if (result[Manifest.permission.RECORD_AUDIO] == true) {
-            status.text = "Offline • Microphone ready"
-        } else {
-            status.text = "Microphone permission is required for voice features"
-        }
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        status.text = if (granted) "Offline • Microphone ready"
+        else "Microphone permission is required for voice features"
     }
 
     private val events = object : BroadcastReceiver() {
@@ -57,24 +56,23 @@ class MainActivity : AppCompatActivity() {
         micState = findViewById(R.id.micState)
         orbLabel = findViewById(R.id.orbLabel)
         memoryStatus = findViewById(R.id.memoryStatus)
+
         val talk = findViewById<Button>(R.id.talkButton)
         val wake = findViewById<Button>(R.id.wakeButton)
         val overlay = findViewById<Button>(R.id.overlayButton)
 
-        requestPermissionsIfNeeded()
         memoryStatus.text = "Local memory • On-device only"
 
         talk.setOnClickListener {
-            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                val i = Intent(this, WakeWordService::class.java).setAction(WakeWordService.ACTION_TALK_NOW)
-                startServiceCompat(i)
-            } else requestPermissionsIfNeeded()
+            if (hasMicPermission()) {
+                startServiceCompat(Intent(this, WakeWordService::class.java).setAction(WakeWordService.ACTION_TALK_NOW))
+            } else requestMicPermission()
         }
 
         wake.setOnClickListener {
-            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            if (hasMicPermission()) {
                 startServiceCompat(Intent(this, WakeWordService::class.java).setAction(WakeWordService.ACTION_ENABLE))
-            } else requestPermissionsIfNeeded()
+            } else requestMicPermission()
         }
 
         overlay.setOnClickListener {
@@ -85,31 +83,44 @@ class MainActivity : AppCompatActivity() {
                 response.text = "Floating Richa bubble enabled."
             }
         }
+
+        if (!hasMicPermission()) {
+            status.text = "Offline • Ready — tap TALK to allow microphone"
+        }
     }
 
-    private fun requestPermissionsIfNeeded() {
-        val permissions = mutableListOf<String>()
-        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) permissions += Manifest.permission.RECORD_AUDIO
-        if (android.os.Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) permissions += Manifest.permission.POST_NOTIFICATIONS
-        if (permissions.isNotEmpty()) permissionLauncher.launch(permissions.toTypedArray())
+    private fun hasMicPermission(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+
+    private fun requestMicPermission() {
+        permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
     }
 
     private fun startServiceCompat(intent: Intent) {
-        androidx.core.content.ContextCompat.startForegroundService(this, intent)
+        ContextCompat.startForegroundService(this, intent)
     }
 
     override fun onStart() {
         super.onStart()
-        androidx.core.content.ContextCompat.registerReceiver(
-            this, events, IntentFilter().apply {
-                addAction(WakeWordService.ACTION_STATE)
-                addAction(WakeWordService.ACTION_RESPONSE)
-            }, androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
-        )
+        if (!receiverRegistered) {
+            ContextCompat.registerReceiver(
+                this,
+                events,
+                IntentFilter().apply {
+                    addAction(WakeWordService.ACTION_STATE)
+                    addAction(WakeWordService.ACTION_RESPONSE)
+                },
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
+            receiverRegistered = true
+        }
     }
 
     override fun onStop() {
-        unregisterReceiver(events)
+        if (receiverRegistered) {
+            unregisterReceiver(events)
+            receiverRegistered = false
+        }
         super.onStop()
     }
 }
