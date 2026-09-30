@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <application android:theme="@style/Theme.Richa" android:label="Richa" android:allowBackup="true" android:supportsRtl="true">
+    <application android:theme="@style/Theme.Richa" android:label="Richa" android:icon="@drawable/ic_richa" android:roundIcon="@drawable/ic_richa" android:allowBackup="true" android:supportsRtl="true">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
