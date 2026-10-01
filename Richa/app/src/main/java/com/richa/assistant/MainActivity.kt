@@ -117,6 +117,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.cameraButton).setOnClickListener { cameraPicker.launch(null) }
         findViewById<Button>(R.id.importCompanionButton).setOnClickListener { companionPicker.launch(arrayOf("model/gltf-binary", "model/gltf+json", "application/octet-stream")) }
         findViewById<Button>(R.id.talkButton).setOnClickListener {
+            chatService.cancel()
             if (hasMicPermission()) startServiceCompat(Intent(this, WakeWordService::class.java).setAction(WakeWordService.ACTION_TALK_NOW))
             else requestMicPermission()
         }
