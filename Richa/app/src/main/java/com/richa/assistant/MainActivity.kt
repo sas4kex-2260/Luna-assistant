@@ -125,6 +125,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.overlayButton).setOnClickListener { toggleOverlay() }
         findViewById<Button>(R.id.settingsAiButton).setOnClickListener { showAiSetup() }
         findViewById<Button>(R.id.installVoiceButton).setOnClickListener { installNeuralVoice() }
+        findViewById<Button>(R.id.devDiagnosticsButton).setOnClickListener { showDiagnostics() }
         findViewById<Button>(R.id.sendButton).setOnClickListener { sendChat() }
         findViewById<Button>(R.id.newChatButton).setOnClickListener {
             messages.clear()
@@ -241,6 +242,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
         chatScroll.post { chatScroll.fullScroll(View.FOCUS_DOWN) }
+    }
+
+    private fun showDiagnostics() {
+        val d = DiagnosticsService.snapshot(this)
+        AlertDialog.Builder(this).setTitle("Richa Developer Diagnostics")
+            .setMessage("${d.android}\nRAM: ${d.ramUsedMb}/${d.ramTotalMb} MB\nApp native heap: ${d.appHeapMb} MB\nGPU: ${d.gpu}\nAI: ${d.ai}\nVoice: ${d.voice}\nCompanion: ${d.companion}")
+            .setPositiveButton("OK", null).show()
     }
 
     private fun installNeuralVoice() {
