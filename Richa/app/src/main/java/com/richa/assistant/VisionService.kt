@@ -22,7 +22,7 @@ class VisionService(private val context: Context) {
                 val body = JSONObject().put("contents", JSONArray().put(JSONObject().put("role","user").put("parts", JSONArray()
                     .put(JSONObject().put("text", prompt))
                     .put(JSONObject().put("inline_data", JSONObject().put("mime_type","image/jpeg").put("data", Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)))))))
-                val conn = (URL("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent").openConnection() as HttpURLConnection).apply { requestMethod="POST"; connectTimeout=12000; readTimeout=40000; doOutput=true; setRequestProperty("Content-Type","application/json"); setRequestProperty("x-goog-api-key",key) }
+                val conn = (URL("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent").openConnection() as HttpURLConnection).apply { requestMethod="POST"; connectTimeout=12000; readTimeout=40000; doOutput=true; setRequestProperty("Content-Type","application/json"); setRequestProperty("x-goog-api-key",key) }
                 conn.outputStream.use { it.write(body.toString().toByteArray(StandardCharsets.UTF_8)) }
                 val code=conn.responseCode
                 if(code !in 200..299) throw IllegalStateException("Vision request failed ("+code+")")
@@ -43,7 +43,7 @@ class VisionService(private val context: Context) {
                 val body = JSONObject().put("contents", JSONArray().put(JSONObject().put("role","user").put("parts", JSONArray()
                     .put(JSONObject().put("text", prompt))
                     .put(JSONObject().put("inline_data", JSONObject().put("mime_type","image/jpeg").put("data", Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)))))))
-                val conn = (URL("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent").openConnection() as HttpURLConnection).apply {
+                val conn = (URL("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent").openConnection() as HttpURLConnection).apply {
                     requestMethod="POST"; connectTimeout=12000; readTimeout=40000; doOutput=true
                     setRequestProperty("Content-Type","application/json"); setRequestProperty("x-goog-api-key",key)
                 }
