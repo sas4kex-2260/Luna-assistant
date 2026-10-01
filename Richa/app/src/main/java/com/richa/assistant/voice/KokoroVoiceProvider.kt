@@ -4,95 +4,85 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
-import dev.ffmpegkit.kokoro.KokoroTTS
+import com.jokobee.tts.free.Tts
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Local Kokoro provider.
- *
- * The ONNX model is intentionally not committed to GitHub. The app can install it
- * into its private files directory in a later model-manager step.
+ * Local Kokoro-82M provider through the published JokobeeTTS free AAR.
+ * The model and official voices are bundled in the AAR, so no model download is required.
  */
 class KokoroVoiceProvider : VoiceProvider {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var job: Job? = null
     private var audioTrack: AudioTrack? = null
+    private var tts: Tts? = null
+    private val stopped = AtomicBoolean(false)
 
-    override fun isAvailable(context: Context): Boolean =
-        File(context.filesDir, MODEL_FILE).exists()
+    override fun isAvailable(context: Context): Boolean = true
 
-    override fun speak(context: Context, text: String, onStarted: (() -> Unit)?, onAudioLevel: ((Float) -> Unit)?, onFinished: (() -> Unit)?) {
-        if (!isAvailable(context)) return
-        scope.launch {
+    override fun speak(
+        context: Context,
+        text: String,
+        onStarted: (() -> Unit)?,
+        onAudioLevel: ((Float) -> Unit)?,
+        onFinished: (() -> Unit)?
+    ) {
+        stop()
+        stopped.set(false)
+        job = scope.launch {
             try {
-                KokoroTTS.initialize(context, File(context.filesDir, MODEL_FILE).absolutePath)
-                val result = KokoroTTS.speak(text)
-                val wav = result.audioData
-                val headerSize = findPcmDataOffset(wav)
-                val data = wav.copyOfRange(headerSize, wav.size)
-                val min = AudioTrack.getMinBufferSize(
-                    24000,
-                    AudioFormat.CHANNEL_OUT_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT
-                )
+                val engine = tts ?: Tts.create(context.applicationContext).also { tts = it }
+                val pcm = engine.synthesize(text, lang = "en")
+                if (stopped.get()) return@launch
+                val shorts = ShortArray(pcm.size) { i -> (pcm[i].coerceIn(-1f, 1f) * 32767f).toInt().toShort() }
+                val min = AudioTrack.getMinBufferSize(24000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT)
                 val track = AudioTrack.Builder()
-                    .setAudioAttributes(
-                        AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_ASSISTANT)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                            .build()
-                    )
-                    .setAudioFormat(
-                        AudioFormat.Builder()
-                            .setSampleRate(24000)
-                            .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                            .build()
-                    )
-                    .setBufferSizeInBytes(maxOf(min, data.size))
-                    .setTransferMode(AudioTrack.MODE_STATIC)
+                    .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANT).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+                    .setAudioFormat(AudioFormat.Builder().setSampleRate(24000).setChannelMask(AudioFormat.CHANNEL_OUT_MONO).setEncoding(AudioFormat.ENCODING_PCM_16BIT).build())
+                    .setBufferSizeInBytes(maxOf(min, 4096))
+                    .setTransferMode(AudioTrack.MODE_STREAM)
                     .build()
                 audioTrack = track
-                track.write(data, 0, data.size)
                 onStarted?.invoke()
                 track.play()
-                val samples = ShortArray(1024)
-                while (track.playbackHeadPosition < data.size / 2 && track.playState == AudioTrack.PLAYSTATE_PLAYING) {
-                    val pos = track.playbackHeadPosition.coerceAtMost(data.size / 2)
-                    if (pos > 0) onAudioLevel?.invoke(((data[(pos * 2).coerceAtMost(data.lastIndex)].toInt() and 0xff) / 255f).coerceIn(0f, 1f))
-                    Thread.sleep(20)
+                var offset = 0
+                while (offset < shorts.size && !stopped.get()) {
+                    val count = minOf(2048, shorts.size - offset)
+                    track.write(shorts, offset, count)
+                    var sum = 0.0
+                    for (i in offset until offset + count) {
+                        val v = shorts[i].toDouble() / 32768.0
+                        sum += v * v
+                    }
+                    onAudioLevel?.invoke(kotlin.math.sqrt(sum / count).toFloat().coerceIn(0f, 1f))
+                    offset += count
                 }
-                track.stop()
-                track.release()
+                if (!stopped.get()) {
+                    while (track.playbackHeadPosition < shorts.size && track.playState == AudioTrack.PLAYSTATE_PLAYING) {
+                        kotlinx.coroutines.delay(20)
+                    }
+                }
+                runCatching { track.stop() }
+                runCatching { track.release() }
                 audioTrack = null
-                onFinished?.invoke()
+                if (!stopped.get()) onFinished?.invoke()
             } catch (_: Throwable) {
+                runCatching { audioTrack?.release() }
                 audioTrack = null
-                onFinished?.invoke()
+                if (!stopped.get()) onFinished?.invoke()
             }
         }
     }
 
-    private fun findPcmDataOffset(wav: ByteArray): Int {
-        if (wav.size < 44) return 0
-        var p = 12
-        while (p + 8 <= wav.size) {
-            val id = String(wav, p, 4, Charsets.US_ASCII)
-            val size = (wav[p + 4].toInt() and 0xff) or
-                ((wav[p + 5].toInt() and 0xff) shl 8) or
-                ((wav[p + 6].toInt() and 0xff) shl 16) or
-                ((wav[p + 7].toInt() and 0xff) shl 24)
-            if (id == "data") return (p + 8).coerceAtMost(wav.size)
-            if (size < 0 || p + 8 + size > wav.size) break
-            p += 8 + size
-        }
-        return 44
-    }
-
     override fun stop() {
+        stopped.set(true)
+        job?.cancel()
+        job = null
         runCatching { audioTrack?.stop() }
         runCatching { audioTrack?.release() }
         audioTrack = null
@@ -100,11 +90,8 @@ class KokoroVoiceProvider : VoiceProvider {
 
     override fun release() {
         stop()
-        runCatching { KokoroTTS.release() }
-        scope.coroutineContext.cancel()
-    }
-
-    companion object {
-        const val MODEL_FILE = "kokoro.onnx"
+        tts?.close()
+        tts = null
+        scope.coroutineContext[Job]?.cancel()
     }
 }
