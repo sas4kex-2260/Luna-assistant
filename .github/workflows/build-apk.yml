@@ -1,4 +1,4 @@
-name: Build Richa APK
+name: Build Richa APK • v1.5.0
 
 on:
   workflow_dispatch:
@@ -53,7 +53,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Richa-v1.4.1-safe-debug-apk
+          name: Richa-v1.5.0-debug-apk
           path: Richa/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 90
