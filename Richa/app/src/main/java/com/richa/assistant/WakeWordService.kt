@@ -196,9 +196,26 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
                 startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                 speak("Opening Bluetooth settings.")
             }
-            lower.startsWith("open ") -> {
-                val target = lower.removePrefix("open ").trim()
-                if (AppLauncher.openByName(this, target)) speak("Opening $target.") else speak("I couldn't find $target on your phone.")
+            lower.startsWith("open ") || lower.startsWith("launch ") || lower.startsWith("start ") -> {
+                var target = when {
+                    lower.startsWith("open ") -> lower.removePrefix("open ")
+                    lower.startsWith("launch ") -> lower.removePrefix("launch ")
+                    else -> lower.removePrefix("start ")
+                }.trim()
+
+                target = target
+                    .removePrefix("the ")
+                    .removeSuffix(" application")
+                    .removeSuffix(" app")
+                    .trim()
+
+                if (target.isBlank() || target == "app") {
+                    speak("Tell me which app to open, for example, open WhatsApp.")
+                } else if (AppLauncher.openByName(this, target)) {
+                    speak("Opening $target.")
+                } else {
+                    speak("I couldn't find an app called $target in the launcher.")
+                }
             }
             lower.startsWith("set a timer") || lower.startsWith("set timer") -> {
                 val seconds = Regex("(\\d+)").find(lower)?.groupValues?.get(1)?.toLongOrNull()
