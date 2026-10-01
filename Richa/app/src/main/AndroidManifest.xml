@@ -9,7 +9,7 @@
 
     <application
         android:theme="@style/Theme.Richa"
-        android:label="Richa"
+        android:label="SaS"
         android:icon="@drawable/ic_richa"
         android:roundIcon="@drawable/ic_richa"
         android:allowBackup="true"
