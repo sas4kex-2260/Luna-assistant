@@ -14,6 +14,7 @@ import org.vosk.Model
 import org.vosk.Recognizer
 import org.vosk.android.StorageService
 import java.util.Locale
+import org.json.JSONObject
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -42,18 +43,68 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
         super.onCreate()
         memory = LocalMemory(this)
         createChannel()
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_btn_speak_now).setContentTitle("Richa is ready")
-            .setContentText("Voice assistant is active").setOngoing(true)
-            .setCategory(NotificationCompat.CATEGORY_SERVICE).build()
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
-        tts = TextToSpeech(this, this)
-        StorageService.unpack(this, "model-en-us", "model", { m -> model = m; sendState("Ready • offline voice + online AI") }, { e -> sendResponse("I couldn't load my speech model: ${e.message ?: "unknown error"}"); sendState("Voice model error") })
+        tts = runCatching { TextToSpeech(applicationContext, this) }.getOrNull()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) { ACTION_ENABLE -> startListening(); ACTION_TALK_NOW -> startCommandMode() }
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            sendState("Microphone permission required")
+            sendResponse("Please allow microphone access before using voice features.")
+            stopSelfResult(startId)
+            return START_NOT_STICKY
+        }
+
+        if (!ensureForeground()) {
+            sendState("Voice service error")
+            sendResponse("Android did not allow Richa to start its microphone service.")
+            stopSelfResult(startId)
+            return START_NOT_STICKY
+        }
+
+        if (model == null) {
+            StorageService.unpack(
+                this,
+                "model-en-us",
+                "model",
+                { m -> model = m; sendState("Ready • offline voice + online AI") },
+                { e ->
+                    sendResponse("I couldn't load my speech model: ${e.message ?: "unknown error"}")
+                    sendState("Voice model error")
+                }
+            )
+        }
+
+        when (intent?.action) {
+            ACTION_ENABLE -> startListening()
+            ACTION_TALK_NOW -> startCommandMode()
+        }
         return START_NOT_STICKY
+    }
+
+    private fun ensureForeground(): Boolean {
+        return try {
+            val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.ic_btn_speak_now)
+                .setContentTitle("Richa voice active")
+                .setContentText("Richa voice mode is enabled.")
+                .setOngoing(true)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .build()
+
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                notification,
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            )
+            true
+        } catch (_: SecurityException) {
+            false
+        } catch (_: IllegalStateException) {
+            false
+        } catch (_: Throwable) {
+            false
+        }
     }
 
     private fun startListening() {
@@ -161,8 +212,15 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
         val n = Regex("(\\d+)").find(text)?.groupValues?.get(1)?.toLongOrNull() ?: return null
         return when { text.contains("hour") -> n * 3600; text.contains("minute") || text.contains("min") -> n * 60; else -> n }
     }
-    private fun extractText(json: String): String = Regex("\\\"text\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"").find(json)?.groupValues?.get(1).orEmpty()
-    private fun waitForModel() { repeat(60) { if (model != null) return; Thread.sleep(100) } }
+    private fun extractText(json: String): String =
+    runCatching { JSONObject(json).optString("text").trim() }.getOrDefault("")
+    private fun waitForModel() {
+    repeat(120) {
+        if (model != null) return
+        if (Thread.currentThread().isInterrupted) return
+        Thread.sleep(100)
+    }
+}
     private fun stopRecording() { try { audioRecord?.stop() } catch (_: Throwable) {}; audioRecord?.release(); audioRecord = null }
     private fun speak(text: String) { sendResponse(text); tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "richa-${System.currentTimeMillis()}") }
     override fun onInit(status: Int) { if (status == TextToSpeech.SUCCESS) { tts?.language = Locale.US; tts?.setPitch(1.12f); tts?.setSpeechRate(0.94f); tts?.voices?.firstOrNull { it.locale.language == "en" && it.name.contains("female", true) }?.let { tts?.voice = it } } }
