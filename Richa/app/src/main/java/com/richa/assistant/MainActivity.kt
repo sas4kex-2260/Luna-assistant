@@ -19,6 +19,8 @@ import com.richa.assistant.voice.VoiceModelInstaller
 import com.richa.assistant.voice.VoiceManager
 import com.richa.assistant.companion.CompanionAssetStore
 import com.richa.assistant.companion.RichaCompanionView
+import android.graphics.Bitmap
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
     private lateinit var status: TextView
@@ -41,6 +43,22 @@ class MainActivity : AppCompatActivity() {
     private var messages = mutableListOf<ChatMessage>()
     private var receiverRegistered = false
     private val companionAssetStore by lazy { CompanionAssetStore(this) }
+
+    private val filePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@registerForActivityResult
+        val fileText = FileService(this).readText(uri)
+        chatInput.setText("Please analyze this file:\n\n" + fileText.take(10000))
+        chatInput.setSelection(chatInput.text.length)
+    }
+
+    private val cameraPicker = registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
+        if (bitmap == null) return@registerForActivityResult
+        val file = File(cacheDir, "camera_" + System.currentTimeMillis() + ".jpg")
+        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 85, it) }
+        VisionService(this).analyze(Uri.fromFile(file), "Describe this image carefully and help me understand what I am looking at.") { answer ->
+            runOnUiThread { chatInput.setText(answer); response.text = answer }
+        }
+    }
 
     private val companionPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
@@ -92,6 +110,8 @@ class MainActivity : AppCompatActivity() {
         status.text = if (SecureStore.hasGeminiKey(this)) "ONLINE • GEMINI READY" else "OFFLINE • ADD GEMINI FOR SMART MODE"
         response.text = "Hey. I'm Richa. Ask me something."
 
+        findViewById<Button>(R.id.fileButton).setOnClickListener { filePicker.launch(arrayOf("text/*", "application/pdf", "application/json", "text/csv")) }
+        findViewById<Button>(R.id.cameraButton).setOnClickListener { cameraPicker.launch(null) }
         findViewById<Button>(R.id.importCompanionButton).setOnClickListener { companionPicker.launch(arrayOf("model/gltf-binary", "model/gltf+json", "application/octet-stream")) }
         findViewById<Button>(R.id.talkButton).setOnClickListener {
             if (hasMicPermission()) startServiceCompat(Intent(this, WakeWordService::class.java).setAction(WakeWordService.ACTION_TALK_NOW))
