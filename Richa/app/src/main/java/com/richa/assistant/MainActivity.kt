@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import com.richa.assistant.voice.VoiceModelInstaller
 import com.richa.assistant.voice.VoiceManager
+import com.richa.assistant.companion.CompanionAssetStore
 
 class MainActivity : AppCompatActivity() {
     private lateinit var status: TextView
@@ -36,7 +37,19 @@ class MainActivity : AppCompatActivity() {
     private val conversationStore by lazy { ConversationStore(this) }
     private var messages = mutableListOf<ChatMessage>()
     private var receiverRegistered = false
+    private val companionAssetStore by lazy { CompanionAssetStore(this) }
 
+    private val companionPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@registerForActivityResult
+        runCatching {
+            contentResolver.openInputStream(uri).use { input ->
+                requireNotNull(input) { "Could not open model." }
+                companionAssetStore.modelFile().outputStream().use { output -> input.copyTo(output) }
+            }
+            response.text = "Waguri GLB imported. The companion renderer can load it in the next renderer step."
+            orbLabel.text = "MODEL READY"
+        }.onFailure { response.text = "I couldn't import that model safely." }
+    }
     private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         status.text = if (granted) "READY • Voice input available" else "MICROPHONE PERMISSION NEEDED"
     }
@@ -75,6 +88,7 @@ class MainActivity : AppCompatActivity() {
         status.text = if (SecureStore.hasGeminiKey(this)) "ONLINE • GEMINI READY" else "OFFLINE • ADD GEMINI FOR SMART MODE"
         response.text = "Hey. I'm Richa. Ask me something."
 
+        findViewById<Button>(R.id.importCompanionButton).setOnClickListener { companionPicker.launch(arrayOf("model/gltf-binary", "model/gltf+json", "application/octet-stream")) }
         findViewById<Button>(R.id.talkButton).setOnClickListener {
             if (hasMicPermission()) startServiceCompat(Intent(this, WakeWordService::class.java).setAction(WakeWordService.ACTION_TALK_NOW))
             else requestMicPermission()
