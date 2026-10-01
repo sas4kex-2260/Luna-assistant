@@ -6,6 +6,8 @@ import com.google.android.filament.Engine
 import com.google.android.filament.gltfio.AssetLoader
 import com.google.android.filament.gltfio.FilamentAsset
 import com.google.android.filament.gltfio.ResourceLoader
+import com.google.android.filament.gltfio.UbershaderProvider
+import com.google.android.filament.utils.EntityManager
 
 /**
  * Filament-backed character runtime foundation.
@@ -21,6 +23,7 @@ class FilamentCharacterController(
 
     private var engine: Engine? = null
     private var assetLoader: AssetLoader? = null
+    private var materialProvider: UbershaderProvider? = null
     private var resourceLoader: ResourceLoader? = null
     private var asset: FilamentAsset? = null
 
@@ -30,7 +33,8 @@ class FilamentCharacterController(
         dispose()
         engine = Engine.create()
         val e = engine ?: return
-        assetLoader = AssetLoader(e, null, null)
+        materialProvider = UbershaderProvider(e)
+        assetLoader = AssetLoader(e, materialProvider, EntityManager.get())
         val bytes = file.readBytes()
         asset = assetLoader?.createAsset(bytes)
         resourceLoader = ResourceLoader(e)
@@ -52,6 +56,8 @@ class FilamentCharacterController(
         asset = null
         assetLoader?.destroy()
         assetLoader = null
+        materialProvider?.destroyMaterials()
+        materialProvider = null
         engine?.destroy()
         engine = null
     }
