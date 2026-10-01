@@ -188,6 +188,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showPage(page: String) {
+        if (page == "companion") loadCompanionModel()
         companionPanel.visibility = if (page == "companion") View.VISIBLE else View.GONE
         chatPanel.visibility = if (page == "chat") View.VISIBLE else View.GONE
         toolsPanel.visibility = if (page == "tools") View.VISIBLE else View.GONE
