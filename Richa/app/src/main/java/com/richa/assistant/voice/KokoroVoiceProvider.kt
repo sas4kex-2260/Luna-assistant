@@ -30,7 +30,9 @@ class KokoroVoiceProvider : VoiceProvider {
             try {
                 KokoroTTS.initialize(context, File(context.filesDir, MODEL_FILE).absolutePath)
                 val result = KokoroTTS.speak(text)
-                val data = result.audioData
+                val wav = result.audioData
+                val headerSize = findPcmDataOffset(wav)
+                val data = wav.copyOfRange(headerSize, wav.size)
                 val min = AudioTrack.getMinBufferSize(
                     24000,
                     AudioFormat.CHANNEL_OUT_MONO,
@@ -69,6 +71,22 @@ class KokoroVoiceProvider : VoiceProvider {
                 onFinished?.invoke()
             }
         }
+    }
+
+    private fun findPcmDataOffset(wav: ByteArray): Int {
+        if (wav.size < 44) return 0
+        var p = 12
+        while (p + 8 <= wav.size) {
+            val id = String(wav, p, 4, Charsets.US_ASCII)
+            val size = (wav[p + 4].toInt() and 0xff) or
+                ((wav[p + 5].toInt() and 0xff) shl 8) or
+                ((wav[p + 6].toInt() and 0xff) shl 16) or
+                ((wav[p + 7].toInt() and 0xff) shl 24)
+            if (id == "data") return (p + 8).coerceAtMost(wav.size)
+            if (size < 0 || p + 8 + size > wav.size) break
+            p += 8 + size
+        }
+        return 44
     }
 
     override fun stop() {
