@@ -241,7 +241,8 @@ class MainActivity : AppCompatActivity() {
                     textSize = 15f
                     setTextColor(getColor(R.color.richa_text))
                     setPadding(16, 13, 16, 13)
-                    setBackgroundResource(if (message.role == ChatMessage.Role.USER) R.drawable/user_bubble else R.drawable/panel_bg)
+                    val bubbleBackground = if (message.role == ChatMessage.Role.USER) com.richa.assistant.R.drawable.user_bubble else com.richa.assistant.R.drawable.panel_bg
+                    setBackgroundResource(bubbleBackground)
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
