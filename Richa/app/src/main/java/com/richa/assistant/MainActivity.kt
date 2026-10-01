@@ -83,6 +83,7 @@ class MainActivity : AppCompatActivity() {
         }
         findViewById<Button>(R.id.aiButton).setOnClickListener { showAiSetup() }
         findViewById<Button>(R.id.overlayButton).setOnClickListener { toggleOverlay() }
+        findViewById<Button>(R.id.settingsAiButton).setOnClickListener { showAiSetup() }
         findViewById<Button>(R.id.sendButton).setOnClickListener { sendChat() }
         findViewById<Button>(R.id.newChatButton).setOnClickListener {
             messages.clear()
