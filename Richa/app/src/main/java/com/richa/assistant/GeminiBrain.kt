@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets
 data class BrainDecision(val type: String, val value: String = "", val extra: String = "")
 
 object GeminiBrain {
-    private const val MODEL = "gemini-3.6-flash"
+    private const val MODEL = "gemini-3.8-flash"
     private const val ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent"
 
     fun decide(context: Context, userText: String, installedApps: List<String>): BrainDecision {
@@ -29,7 +29,7 @@ User request: $userText"""
         val body = JSONObject()
             .put("system_instruction", JSONObject().put("parts", JSONArray().put(JSONObject().put("text", system))))
             .put("contents", JSONArray().put(JSONObject().put("role", "user").put("parts", JSONArray().put(JSONObject().put("text", userText)))))
-            .put("generationConfig", JSONObject().put("temperature", 0.2).put("maxOutputTokens", 300))
+            .put("generationConfig", JSONObject().put("maxOutputTokens", 300))
         var connection: HttpURLConnection? = null
         return try {
             connection = (URL(ENDPOINT).openConnection() as HttpURLConnection).apply {
