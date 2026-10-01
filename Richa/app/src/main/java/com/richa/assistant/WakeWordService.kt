@@ -117,15 +117,28 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
                 val min = AudioRecord.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
                 audioRecord = AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, maxOf(min * 2, 4096))
                 audioRecord!!.startRecording()
-                if (forceCommand) { forceCommand = false; startCommandModeInternal(); return@execute }
+                if (forceCommand) {
+                    forceCommand = false
+                    startCommandModeInternal()
+                    if (!running.get()) return@execute
+                }
                 sendState("Listening for ‘Hey Richa’ • offline")
                 val buffer = ByteArray(2048)
                 while (running.get()) {
-                    if (forceCommand) { forceCommand = false; startCommandModeInternal(); break }
+                    if (forceCommand) {
+                        forceCommand = false
+                        startCommandModeInternal()
+                        if (!running.get()) break
+                        continue
+                    }
                     val n = audioRecord!!.read(buffer, 0, buffer.size); if (n <= 0) continue
                     val recognized = wakeRecognizer!!.acceptWaveForm(buffer, n)
                     val text = if (recognized) wakeRecognizer!!.result else wakeRecognizer!!.partialResult
-                    if (text.lowercase(Locale.US).contains("hey richa")) { startCommandModeInternal(); break }
+                    if (text.lowercase(Locale.US).contains("hey richa")) {
+                        startCommandModeInternal()
+                        if (!running.get()) break
+                        sendState("Listening for ‘Hey Richa’ • offline")
+                    }
                 }
             } catch (t: Throwable) { sendResponse("Voice service stopped: ${t.message ?: "unknown error"}"); sendState("Voice service error") }
             finally { stopRecording(); running.set(false) }
