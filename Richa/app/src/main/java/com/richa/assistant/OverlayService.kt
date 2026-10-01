@@ -14,8 +14,12 @@ class OverlayService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        if (!Settings.canDrawOverlays(this)) return
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        if (!Settings.canDrawOverlays(this)) {
+            stopSelf()
+            return
+        }
+        try {
+            windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         val root = LayoutInflater.from(this).inflate(R.layout.overlay_richa, FrameLayout(this), false)
         view = root
         val params = WindowManager.LayoutParams(
@@ -31,7 +35,10 @@ class OverlayService : Service() {
                 this, Intent(this, WakeWordService::class.java).setAction(WakeWordService.ACTION_TALK_NOW)
             )
         }
-        windowManager?.addView(root, params)
+            windowManager?.addView(root, params)
+        } catch (_: Throwable) {
+            stopSelf()
+        }
     }
 
     override fun onDestroy() {
