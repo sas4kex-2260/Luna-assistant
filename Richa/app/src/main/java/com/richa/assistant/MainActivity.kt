@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import java.text.SimpleDateFormat
 import java.util.*
+import com.richa.assistant.voice.VoiceModelInstaller
+import com.richa.assistant.voice.VoiceManager
 
 class MainActivity : AppCompatActivity() {
     private lateinit var status: TextView
@@ -84,6 +86,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.aiButton).setOnClickListener { showAiSetup() }
         findViewById<Button>(R.id.overlayButton).setOnClickListener { toggleOverlay() }
         findViewById<Button>(R.id.settingsAiButton).setOnClickListener { showAiSetup() }
+        findViewById<Button>(R.id.installVoiceButton).setOnClickListener { installNeuralVoice() }
         findViewById<Button>(R.id.sendButton).setOnClickListener { sendChat() }
         findViewById<Button>(R.id.newChatButton).setOnClickListener {
             messages.clear()
@@ -191,6 +194,21 @@ class MainActivity : AppCompatActivity() {
         chatScroll.post { chatScroll.fullScroll(View.FOCUS_DOWN) }
     }
 
+    private fun installNeuralVoice() {
+        if (VoiceManager(this).hasLocalNeuralVoice()) {
+            response.text = "Offline neural voice is already installed."
+            return
+        }
+        status.text = "DOWNLOADING • KOKORO VOICE"
+        response.text = "Downloading the verified ~86 MB neural voice model. This is a one-time setup; speech stays local afterward."
+        VoiceModelInstaller.install(this,
+            onProgress = { p -> runOnUiThread { response.text = "Installing offline neural voice… $p%" } },
+            onDone = { ok, message -> runOnUiThread {
+                status.text = if (ok) "OFFLINE • NEURAL VOICE READY" else "VOICE INSTALL FAILED"
+                response.text = message
+            } }
+        )
+    }
     private fun showAiSetup() {
         val input = EditText(this).apply {
             hint = "Paste Gemini API key"
