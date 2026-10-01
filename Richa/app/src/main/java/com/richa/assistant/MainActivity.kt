@@ -135,7 +135,6 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.settingsAiButton).setOnClickListener { showAiSetup() }
         findViewById<Button>(R.id.installVoiceButton).setOnClickListener { installNeuralVoice() }
         findViewById<Button>(R.id.devDiagnosticsButton).setOnClickListener { showDiagnostics() }
-        findViewById<Button>(R.id.accessibilityButton).setOnClickListener { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
         findViewById<Button>(R.id.sendButton).setOnClickListener { sendChat() }
         findViewById<Button>(R.id.newChatButton).setOnClickListener {
             messages.clear()
