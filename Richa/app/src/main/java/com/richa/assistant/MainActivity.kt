@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import java.text.SimpleDateFormat
 import java.util.*
-import com.richa.assistant.voice.VoiceModelInstaller
 import com.richa.assistant.voice.VoiceManager
 import com.richa.assistant.companion.CompanionAssetStore
 import com.richa.assistant.companion.RichaCompanionView
