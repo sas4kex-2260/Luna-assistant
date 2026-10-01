@@ -38,7 +38,7 @@ class RichaCompanionView(context: Context) : FrameLayout(context), CharacterCont
 
     override fun onDetachedFromWindow() {
         Choreographer.getInstance().removeFrameCallback(frameCallback)
-        viewer?.destroyModel()
+        viewer?.destroy()
         viewer = null
         super.onDetachedFromWindow()
     }
@@ -98,10 +98,17 @@ class RichaCompanionView(context: Context) : FrameLayout(context), CharacterCont
     }
 
     override fun updateLipSync(viseme: String, intensity: Float) {
-        // Viseme routing is deliberately deferred until the imported Waguri asset's
-        // morph-target names are known. This avoids guessing and breaking the model.
+        val v = viewer ?: return
+        val animator = v.animator ?: return
+        if (animator.animationCount == 0) return
+        if (intensity > 0.08f) {
+            val index = (0 until animator.animationCount).firstOrNull {
+                val n = animator.getAnimationName(it).lowercase()
+                n.contains("talk") || n.contains("speak") || n.contains("mouth")
+            }
+            if (index != null) v.activeAnimationIndex = index
+        } else playIdle()
     }
-
     override fun stopTalking() {
         talking = false
         playIdle()
