@@ -42,6 +42,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("com.google.android.material:material:1.13.0")
+    implementation("com.google.mlkit:face-detection:16.1.7")
     implementation("com.alphacephei:vosk-android:0.3.75@aar")
     implementation("net.java.dev.jna:jna:5.18.1@aar")
     implementation("com.alphacephei:vosk-model-en:0.3.75")
