@@ -31,9 +31,23 @@ class OverlayService : Service() {
         params.gravity = Gravity.END or Gravity.CENTER_VERTICAL
         params.x = 16.dp()
         root.setOnClickListener {
-            androidx.core.content.ContextCompat.startForegroundService(
-                this, Intent(this, WakeWordService::class.java).setAction(WakeWordService.ACTION_TALK_NOW)
-            )
+            try {
+                if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) !=
+                    android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    startActivity(
+                        Intent(this, MainActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                    return@setOnClickListener
+                }
+                androidx.core.content.ContextCompat.startForegroundService(
+                    this,
+                    Intent(this, WakeWordService::class.java)
+                        .setAction(WakeWordService.ACTION_TALK_NOW)
+                )
+            } catch (_: Throwable) {
+                // A bubble interaction must never crash the assistant process.
+            }
         }
             windowManager?.addView(root, params)
         } catch (_: Throwable) {
