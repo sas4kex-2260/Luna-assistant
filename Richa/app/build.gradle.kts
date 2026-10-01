@@ -10,9 +10,9 @@ android {
     defaultConfig {
         applicationId = "com.richa.assistant"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 3
-        versionName = "1.2"
+        targetSdk = 35
+        versionCode = 4
+        versionName = "1.3"
     }
 
     buildTypes {
