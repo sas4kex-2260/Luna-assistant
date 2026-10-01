@@ -1,8 +1,10 @@
-name: Build Richa APK
+name: Build Richa APK • v1.5.0
 
 on:
   workflow_dispatch:
   push:
+    branches: [ main, richa-next-ui ]
+  pull_request:
     branches: [ main ]
 
 jobs:
@@ -41,10 +43,17 @@ jobs:
         working-directory: Richa
         run: gradle --no-daemon --stacktrace clean :app:assembleDebug
 
+      - name: Verify APK package
+        working-directory: Richa
+        run: |
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          unzip -t app/build/outputs/apk/debug/app-debug.apk >/dev/null
+          sha256sum app/build/outputs/apk/debug/app-debug.apk
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Richa-v1.3-debug-apk
+          name: Richa-v1.5.0-debug-apk
           path: Richa/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90

@@ -17,13 +17,16 @@ import java.util.Locale
 import org.json.JSONObject
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import com.richa.assistant.voice.VoiceManager
 
 class WakeWordService : Service(), TextToSpeech.OnInitListener {
     companion object {
         const val ACTION_ENABLE = "com.richa.assistant.ENABLE_WAKE"
         const val ACTION_TALK_NOW = "com.richa.assistant.TALK_NOW"
+        const val ACTION_INTERRUPT = "com.richa.assistant.INTERRUPT"
         const val ACTION_STATE = "com.richa.assistant.STATE"
         const val ACTION_RESPONSE = "com.richa.assistant.RESPONSE"
+        const val ACTION_VOICE_LEVEL = "com.richa.assistant.VOICE_LEVEL"
         private const val CHANNEL_ID = "richa_voice"
         private const val NOTIFICATION_ID = 4101
         private const val SAMPLE_RATE = 16000
@@ -37,11 +40,13 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
     private var commandRecognizer: Recognizer? = null
     private var tts: TextToSpeech? = null
     private lateinit var memory: LocalMemory
+    private lateinit var voiceManager: VoiceManager
     @Volatile private var forceCommand = false
 
     override fun onCreate() {
         super.onCreate()
         memory = LocalMemory(this)
+        voiceManager = VoiceManager(this)
         createChannel()
         tts = runCatching { TextToSpeech(applicationContext, this) }.getOrNull()
     }
@@ -77,6 +82,7 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
         when (intent?.action) {
             ACTION_ENABLE -> startListening()
             ACTION_TALK_NOW -> startCommandMode()
+            ACTION_INTERRUPT -> { voiceManager.provider()?.stop(); tts?.stop(); sendState("Voice interrupted") }
         }
         return START_NOT_STICKY
     }
@@ -145,7 +151,7 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun startCommandMode() { forceCommand = true; if (!running.get()) startListening() }
+    private fun startCommandMode() { voiceManager.provider()?.stop(); tts?.stop(); forceCommand = true; if (!running.get()) startListening() }
 
     private fun startCommandModeInternal() {
         val m = model ?: return
@@ -239,11 +245,20 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
     }
 }
     private fun stopRecording() { try { audioRecord?.stop() } catch (_: Throwable) {}; audioRecord?.release(); audioRecord = null }
-    private fun speak(text: String) { sendResponse(text); tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "richa-${System.currentTimeMillis()}") }
+    private fun speak(text: String) {
+        voiceManager.provider()?.stop()
+        tts?.stop()
+        sendResponse(text)
+        if (voiceManager.hasLocalNeuralVoice()) {
+            voiceManager.provider()?.speak(this, text, onAudioLevel = { level -> sendBroadcast(Intent(ACTION_VOICE_LEVEL).setPackage(packageName).putExtra("level", level)) })
+        } else {
+            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "richa-" + System.currentTimeMillis())
+        }
+    }
     override fun onInit(status: Int) { if (status == TextToSpeech.SUCCESS) { tts?.language = Locale.US; tts?.setPitch(1.12f); tts?.setSpeechRate(0.94f); tts?.voices?.firstOrNull { it.locale.language == "en" && it.name.contains("female", true) }?.let { tts?.voice = it } } }
     private fun sendState(state: String) = sendBroadcast(Intent(ACTION_STATE).setPackage(packageName).putExtra("state", state))
     private fun sendResponse(text: String) = sendBroadcast(Intent(ACTION_RESPONSE).setPackage(packageName).putExtra("text", text))
     private fun createChannel() { if (Build.VERSION.SDK_INT >= 26) getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel(CHANNEL_ID, "Richa voice", NotificationManager.IMPORTANCE_LOW)) }
-    override fun onDestroy() { running.set(false); stopRecording(); wakeRecognizer?.close(); commandRecognizer?.close(); model?.close(); tts?.stop(); tts?.shutdown(); executor.shutdownNow(); super.onDestroy() }
+    override fun onDestroy() { running.set(false); stopRecording(); wakeRecognizer?.close(); commandRecognizer?.close(); model?.close(); tts?.stop(); tts?.shutdown(); voiceManager.release(); executor.shutdownNow(); super.onDestroy() }
     override fun onBind(intent: Intent?): IBinder? = null
 }
