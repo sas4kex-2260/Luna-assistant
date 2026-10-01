@@ -193,6 +193,24 @@
                     android:paddingEnd="14dp"/>
 
                 <Button
+                    android:id="@+id/fileButton"
+                    android:layout_width="48dp"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="5dp"
+                    android:text="📎"
+                    android:textColor="@color/richa_text"
+                    android:background="@drawable/action_bg"/>
+
+                <Button
+                    android:id="@+id/cameraButton"
+                    android:layout_width="48dp"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="5dp"
+                    android:text="📷"
+                    android:textColor="@color/richa_text"
+                    android:background="@drawable/action_bg"/>
+
+                <Button
                     android:id="@+id/sendButton"
                     android:layout_width="72dp"
                     android:layout_height="52dp"
