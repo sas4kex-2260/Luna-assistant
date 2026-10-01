@@ -11,8 +11,8 @@ android {
         applicationId = "com.richa.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.4-dev"
+        versionCode = 6
+        versionName = "1.5.0"
     }
 
     buildTypes {
@@ -45,7 +45,6 @@ dependencies {
     implementation("com.google.mlkit:face-detection:16.1.7")
     implementation("com.alphacephei:vosk-android:0.3.75@aar")
     implementation("net.java.dev.jna:jna:5.18.1@aar")
-    implementation("com.alphacephei:vosk-model-en:0.3.75")
     // Real-time 3D companion rendering (glTF/GLB). The actual Waguri asset stays user-supplied.
     implementation("com.google.android.filament:filament-android:1.72.1")
     implementation("com.google.android.filament:gltfio-android:1.72.1")
