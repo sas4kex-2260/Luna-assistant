@@ -18,6 +18,7 @@ import java.util.*
 import com.richa.assistant.voice.VoiceModelInstaller
 import com.richa.assistant.voice.VoiceManager
 import com.richa.assistant.companion.CompanionAssetStore
+import com.richa.assistant.companion.RichaCompanionView
 
 class MainActivity : AppCompatActivity() {
     private lateinit var status: TextView
@@ -32,6 +33,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toolsPanel: View
     private lateinit var historyPanel: View
     private lateinit var settingsPanel: View
+    private lateinit var companionHost: FrameLayout
+    private var companionView: RichaCompanionView? = null
 
     private val chatService by lazy { ChatService(this) }
     private val conversationStore by lazy { ConversationStore(this) }
@@ -46,8 +49,9 @@ class MainActivity : AppCompatActivity() {
                 requireNotNull(input) { "Could not open model." }
                 companionAssetStore.modelFile().outputStream().use { output -> input.copyTo(output) }
             }
-            response.text = "Waguri GLB imported. The companion renderer can load it in the next renderer step."
-            orbLabel.text = "MODEL READY"
+            response.text = "Waguri 3D model loaded."
+            orbLabel.text = "3D READY"
+            loadCompanionModel()
         }.onFailure { response.text = "I couldn't import that model safely." }
     }
     private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -137,6 +141,18 @@ class MainActivity : AppCompatActivity() {
         toolsPanel = findViewById(R.id.toolsPanel)
         historyPanel = findViewById(R.id.historyPanel)
         settingsPanel = findViewById(R.id.settingsPanel)
+        companionHost = findViewById(R.id.companionHost)
+    }
+
+    private fun loadCompanionModel() {
+        if (!companionAssetStore.hasModel()) return
+        if (companionView == null) {
+            companionView = RichaCompanionView(this)
+            companionHost.removeAllViews()
+            companionHost.addView(companionView, FrameLayout.LayoutParams(-1, -1))
+            findViewById<ImageView>(R.id.companionPlaceholder).visibility = View.GONE
+        }
+        companionView?.loadModel(companionAssetStore.modelFile())
     }
 
     private fun showPage(page: String) {
