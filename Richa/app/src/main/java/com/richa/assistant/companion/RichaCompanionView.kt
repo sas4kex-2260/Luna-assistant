@@ -15,9 +15,22 @@ class RichaCompanionView(context: Context) : FrameLayout(context), CharacterCont
     private var viewer: ModelViewer? = null
     private var loadedFile: File? = null
     private var requestedEmotion = CharacterController.Emotion.NEUTRAL
+    private var activeAnimation = 0
+    private var animationStartNanos = 0L
+
     private val frameCallback = object : Choreographer.FrameCallback {
         override fun doFrame(frameTimeNanos: Long) {
-            viewer?.render(frameTimeNanos)
+            val v = viewer
+            if (v != null) {
+                val animator = v.animator
+                if (animator != null && animator.animationCount > 0) {
+                    if (animationStartNanos == 0L) animationStartNanos = frameTimeNanos
+                    val elapsed = (frameTimeNanos - animationStartNanos) / 1_000_000_000f
+                    animator.applyAnimation(activeAnimation.coerceIn(0, animator.animationCount - 1), elapsed)
+                    animator.updateBoneMatrices()
+                }
+                v.render(frameTimeNanos)
+            }
             Choreographer.getInstance().postFrameCallback(this)
         }
     }
@@ -26,7 +39,10 @@ class RichaCompanionView(context: Context) : FrameLayout(context), CharacterCont
         Filament.init()
         surface.setBackgroundColor(Color.TRANSPARENT)
         addView(surface, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
-        surface.setOnTouchListener { _, event -> viewer?.onTouchEvent(event) ?: false }
+        surface.setOnTouchListener { _, event ->
+            viewer?.onTouchEvent(event)
+            true
+        }
         post { if (isAttachedToWindow && viewer == null) viewer = ModelViewer(surface) }
     }
 
@@ -52,57 +68,60 @@ class RichaCompanionView(context: Context) : FrameLayout(context), CharacterCont
             runCatching {
                 v.loadModelGlb(ByteBuffer.wrap(file.readBytes()))
                 v.transformToUnitCube()
-                v.autoPlayAnimations = true
+                activeAnimation = 0
+                animationStartNanos = 0L
                 playIdle()
             }
         }
     }
 
     override fun playIdle() {
-        val animator = viewer?.animator ?: return
+        val v = viewer ?: return
+        val animator = v.animator ?: return
         if (animator.animationCount > 0) {
             val names = (0 until animator.animationCount).map { animator.getAnimationName(it).lowercase() }
-            viewer?.activeAnimationIndex = names.indexOfFirst { it.contains("idle") }.takeIf { it >= 0 } ?: 0
+            activeAnimation = names.indexOfFirst { it.contains("idle") }.takeIf { it >= 0 } ?: 0
+            animationStartNanos = 0L
         }
     }
 
     override fun lookAtUser() {
-        // Real face/eye targeting will be mapped after inspecting the supplied GLB's eye rig.
+        // Actual eye-bone/blendshape targeting will be mapped after the supplied GLB is inspected.
     }
 
     override fun blink() {
-        // Real blink blendshape/animation mapping will be added after GLB inspection.
+        // Actual blink control will be mapped after the supplied GLB is inspected.
     }
 
     override fun setEmotion(emotion: CharacterController.Emotion) {
         requestedEmotion = emotion
-        val animator = viewer?.animator ?: return
+        val v = viewer ?: return
+        val animator = v.animator ?: return
         val key = emotion.name.lowercase()
         val index = (0 until animator.animationCount).firstOrNull {
             animator.getAnimationName(it).lowercase().contains(key)
         }
-        if (index != null) viewer?.activeAnimationIndex = index
+        if (index != null) {
+            activeAnimation = index
+            animationStartNanos = 0L
+        }
     }
 
     override fun startTalking() {
-        val animator = viewer?.animator ?: return
+        val v = viewer ?: return
+        val animator = v.animator ?: return
         val index = (0 until animator.animationCount).firstOrNull {
             val n = animator.getAnimationName(it).lowercase()
             n.contains("talk") || n.contains("speak")
         }
-        if (index != null) viewer?.activeAnimationIndex = index
+        if (index != null) {
+            activeAnimation = index
+            animationStartNanos = 0L
+        }
     }
 
     override fun updateLipSync(viseme: String, intensity: Float) {
-        val animator = viewer?.animator ?: return
-        if (animator.animationCount == 0) return
-        if (intensity > 0.08f) {
-            val index = (0 until animator.animationCount).firstOrNull {
-                val n = animator.getAnimationName(it).lowercase()
-                n.contains("talk") || n.contains("speak") || n.contains("mouth")
-            }
-            if (index != null) viewer?.activeAnimationIndex = index
-        } else playIdle()
+        if (intensity > 0.08f) startTalking() else playIdle()
     }
 
     override fun stopTalking() = playIdle()
