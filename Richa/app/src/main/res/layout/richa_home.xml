@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/richa_bg"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="18dp">
+
+        <!-- Top bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:gravity="center_vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="10dp"
+            android:background="@drawable/panel_bg">
+
+            <TextView
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:gravity="center"
+                android:text="R"
+                android:textColor="@color/richa_bg"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:background="@drawable/lime_button"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="11dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="RICHA"
+                    android:textColor="@color/richa_text"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08"/>
+
+                <TextView
+                    android:id="@+id/statusText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="OFFLINE"
+                    android:textColor="@color/richa_lime"
+                    android:textSize="9sp"
+                    android:textStyle="bold"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/micState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="○ IDLE"
+                android:textColor="@color/richa_muted"
+                android:textSize="9sp"
+                android:padding="9dp"
+                android:background="@drawable/action_bg"/>
+        </LinearLayout>
+
+        <!-- Companion / hero -->
+        <FrameLayout
+            android:id="@+id/companionPanel"
+            android:layout_width="match_parent"
+            android:layout_height="330dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/panel_bg"
+            android:clipChildren="false">
+
+            <View
+                android:layout_width="270dp"
+                android:layout_height="270dp"
+                android:layout_gravity="center"
+                android:background="@drawable/anime_core"/>
+
+            <FrameLayout
+                android:id="@+id/companionHost"
+                android:layout_width="match_parent"
+                android:layout_height="286dp"
+                android:layout_gravity="top|center_horizontal"/>
+
+            <ImageView
+                android:id="@+id/companionPlaceholder"
+                android:layout_width="180dp"
+                android:layout_height="235dp"
+                android:layout_gravity="center"
+                android:src="@drawable/anime_girl"
+                android:contentDescription="Richa companion"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI COMPANION"
+                    android:textColor="@color/richa_lime"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08"/>
+
+                <TextView
+                    android:id="@+id/orbLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="READY"
+                    android:textColor="@color/richa_text"
+                    android:textSize="10sp"/>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/importCompanionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="12dp"
+                android:text="IMPORT GLB"
+                android:textSize="9sp"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+
+        </FrameLayout>
+
+        <!-- Voice actions -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/talkButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="TALK TO RICHA"
+                android:textColor="@color/richa_bg"
+                android:textStyle="bold"
+                android:background="@drawable/lime_button"/>
+
+            <Button
+                android:id="@+id/wakeButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.72"
+                android:layout_marginStart="8dp"
+                android:text="HEY RICHA"
+                android:textColor="@color/richa_text"
+                android:textSize="11sp"
+                android:background="@drawable/action_bg"/>
+        </LinearLayout>
+
+        <!-- Current response -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical"
+            android:padding="14dp"
+            android:background="@drawable/panel_bg">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RICHA"
+                android:textColor="@color/richa_lime"
+                android:textSize="9sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/responseText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Hey. I'm Richa. Ask me something."
+                android:textColor="@color/richa_text"
+                android:textSize="14sp"
+                android:lineSpacingExtra="2dp"/>
+        </LinearLayout>
+
+        <!-- Chat -->
+        <LinearLayout
+            android:id="@+id/chatPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical">
+
+            <ScrollView
+                android:id="@+id/chatScroll"
+                android:layout_width="match_parent"
+                android:layout_height="280dp"
+                android:background="@drawable/panel_bg"
+                android:padding="9dp"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:id="@+id/chatList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"/>
+            </ScrollView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical">
+
+                <EditText
+                    android:id="@+id/chatInput"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="Message Richa..."
+                    android:singleLine="true"
+                    android:imeOptions="actionSend"
+                    android:textColor="@color/richa_text"
+                    android:textColorHint="@color/richa_muted"
+                    android:background="@drawable/action_bg"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"/>
+
+                <Button
+                    android:id="@+id/fileButton"
+                    android:layout_width="44dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="5dp"
+                    android:text="↗"
+                    android:textColor="@color/richa_text"
+                    android:textSize="17sp"
+                    android:contentDescription="Attach file"
+                    android:background="@drawable/action_bg"/>
+
+                <Button
+                    android:id="@+id/cameraButton"
+                    android:layout_width="44dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="5dp"
+                    android:text="◎"
+                    android:textColor="@color/richa_text"
+                    android:textSize="18sp"
+                    android:contentDescription="Open camera"
+                    android:background="@drawable/action_bg"/>
+
+                <Button
+                    android:id="@+id/sendButton"
+                    android:layout_width="68dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="6dp"
+                    android:text="SEND"
+                    android:textColor="@color/richa_bg"
+                    android:textStyle="bold"
+                    android:background="@drawable/lime_button"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Companion page -->
+        <LinearLayout
+            android:id="@+id/toolsPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="15dp"
+            android:background="@drawable/panel_bg">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TOOLS"
+                android:textColor="@color/richa_lime"
+                android:textStyle="bold"
+                android:textSize="11sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:text="Web Search • Files • Camera/Vision • Android actions
+
+Richa only reports a tool result after the tool actually runs."
+                android:textColor="@color/richa_text"
+                android:textSize="13sp"/>
+
+            <Button
+                android:id="@+id/aiButton"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="12dp"
+                android:text="CONFIGURE ONLINE AI"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+
+            <Button
+                android:id="@+id/overlayButton"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="7dp"
+                android:text="FLOATING BUBBLE"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+        </LinearLayout>
+
+        <!-- History -->
+        <LinearLayout
+            android:id="@+id/historyPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="15dp"
+            android:background="@drawable/panel_bg">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HISTORY"
+                android:textColor="@color/richa_lime"
+                android:textStyle="bold"
+                android:textSize="11sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:text="Your conversation is stored locally on this device."
+                android:textColor="@color/richa_text"
+                android:textSize="13sp"/>
+
+            <Button
+                android:id="@+id/newChatButton"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="12dp"
+                android:text="NEW CHAT"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+
+            <Button
+                android:id="@+id/clearHistoryButton"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="7dp"
+                android:text="CLEAR LOCAL HISTORY"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+        </LinearLayout>
+
+        <!-- Settings -->
+        <LinearLayout
+            android:id="@+id/settingsPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:padding="15dp"
+            android:background="@drawable/panel_bg">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SETTINGS"
+                android:textColor="@color/richa_lime"
+                android:textStyle="bold"
+                android:textSize="11sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:text="Online AI • Voice • Companion • Memory • Privacy"
+                android:textColor="@color/richa_text"
+                android:textSize="13sp"/>
+
+            <Button
+                android:id="@+id/settingsAiButton"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="12dp"
+                android:text="ONLINE AI KEY"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+
+            <Button
+                android:id="@+id/devDiagnosticsButton"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="7dp"
+                android:text="DEVELOPER DIAGNOSTICS"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+
+            <Button
+                android:id="@+id/installVoiceButton"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="7dp"
+                android:text="OFFLINE NEURAL VOICE"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+        </LinearLayout>
+
+        <!-- Navigation -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:background="@drawable/panel_bg">
+
+            <Button
+                android:id="@+id/navChat"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="CHAT"
+                android:textSize="9sp"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+
+            <Button
+                android:id="@+id/navCompanion"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="COMPANION"
+                android:textSize="9sp"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+
+            <Button
+                android:id="@+id/navTools"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="TOOLS"
+                android:textSize="9sp"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+
+            <Button
+                android:id="@+id/navHistory"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="HISTORY"
+                android:textSize="9sp"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+
+            <Button
+                android:id="@+id/navSettings"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="SETTINGS"
+                android:textSize="9sp"
+                android:textColor="@color/richa_text"
+                android:background="@drawable/action_bg"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginTop="10dp"
+            android:text="Richa • personal AI companion"
+            android:textColor="@color/richa_muted"
+            android:textSize="9sp"/>
+    </LinearLayout>
+</ScrollView>
