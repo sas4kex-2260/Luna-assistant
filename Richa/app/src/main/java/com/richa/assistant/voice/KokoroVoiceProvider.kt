@@ -24,7 +24,7 @@ class KokoroVoiceProvider : VoiceProvider {
     override fun isAvailable(context: Context): Boolean =
         File(context.filesDir, MODEL_FILE).exists()
 
-    override fun speak(context: Context, text: String, onStarted: (() -> Unit)?, onFinished: (() -> Unit)?) {
+    override fun speak(context: Context, text: String, onStarted: (() -> Unit)?, onAudioLevel: ((Float) -> Unit)?, onFinished: (() -> Unit)?) {
         if (!isAvailable(context)) return
         scope.launch {
             try {
@@ -59,8 +59,11 @@ class KokoroVoiceProvider : VoiceProvider {
                 track.write(data, 0, data.size)
                 onStarted?.invoke()
                 track.play()
+                val samples = ShortArray(1024)
                 while (track.playbackHeadPosition < data.size / 2 && track.playState == AudioTrack.PLAYSTATE_PLAYING) {
-                    Thread.sleep(25)
+                    val pos = track.playbackHeadPosition.coerceAtMost(data.size / 2)
+                    if (pos > 0) onAudioLevel?.invoke(((data[(pos * 2).coerceAtMost(data.lastIndex)].toInt() and 0xff) / 255f).coerceIn(0f, 1f))
+                    Thread.sleep(20)
                 }
                 track.stop()
                 track.release()
