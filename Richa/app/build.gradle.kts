@@ -45,4 +45,9 @@ dependencies {
     implementation("com.alphacephei:vosk-android:0.3.75@aar")
     implementation("net.java.dev.jna:jna:5.18.1@aar")
     implementation("com.alphacephei:vosk-model-en:0.3.75")
+    // Real-time 3D companion rendering (glTF/GLB). The actual Waguri asset stays user-supplied.
+    implementation("com.google.android.filament:filament-android:1.77.1")
+    implementation("com.google.android.filament:gltfio-android:1.77.1")
+    // Offline neural TTS. Model weights are installed separately to keep the APK manageable.
+    implementation("dev.ffmpegkit-maintained:kokoro-android:0.1.0")
 }
