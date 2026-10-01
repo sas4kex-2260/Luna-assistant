@@ -26,6 +26,7 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
         const val ACTION_INTERRUPT = "com.richa.assistant.INTERRUPT"
         const val ACTION_STATE = "com.richa.assistant.STATE"
         const val ACTION_RESPONSE = "com.richa.assistant.RESPONSE"
+        const val ACTION_VOICE_LEVEL = "com.richa.assistant.VOICE_LEVEL"
         private const val CHANNEL_ID = "richa_voice"
         private const val NOTIFICATION_ID = 4101
         private const val SAMPLE_RATE = 16000
@@ -249,7 +250,7 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
         tts?.stop()
         sendResponse(text)
         if (voiceManager.hasLocalNeuralVoice()) {
-            voiceManager.provider()?.speak(this, text)
+            voiceManager.provider()?.speak(this, text, onAudioLevel = { level -> sendBroadcast(Intent(ACTION_VOICE_LEVEL).setPackage(packageName).putExtra("level", level)) })
         } else {
             tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "richa-" + System.currentTimeMillis())
         }
