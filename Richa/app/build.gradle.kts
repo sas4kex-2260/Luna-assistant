@@ -51,5 +51,5 @@ dependencies {
     implementation("com.google.android.filament:gltfio-android:1.77.1")
     implementation("com.google.android.filament:filament-utils-android:1.77.1")
     // Offline neural TTS. Model weights are installed separately to keep the APK manageable.
-    implementation("dev.ffmpegkit-maintained:kokoro-android:0.1.0")
+    implementation("com.jokobee:jokobeetts:1.1.0")
 }
