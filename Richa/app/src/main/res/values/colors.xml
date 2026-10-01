@@ -1,8 +1,12 @@
 <resources>
-    <color name="richa_bg">#090B12</color>
-    <color name="richa_panel">#121725</color>
-    <color name="richa_accent">#8B7CFF</color>
-    <color name="richa_accent_2">#FF79C6</color>
-    <color name="richa_text">#F6F4FF</color>
-    <color name="richa_muted">#9AA2B8</color>
+    <color name="richa_bg">#090A12</color>
+    <color name="richa_panel">#141522</color>
+    <color name="richa_panel_2">#1B1A2B</color>
+    <color name="richa_accent">#A77BFF</color>
+    <color name="richa_accent_2">#FF7BCB</color>
+    <color name="richa_cyan">#79DFFF</color>
+    <color name="richa_text">#FFF7FC</color>
+    <color name="richa_muted">#A9A5B8</color>
+    <color name="richa_line">#332F48</color>
+    <color name="richa_good">#8BE6C2</color>
 </resources>
