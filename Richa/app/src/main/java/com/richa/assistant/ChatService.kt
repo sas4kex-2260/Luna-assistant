@@ -1,21 +1,25 @@
 package com.richa.assistant
 
 import android.content.Context
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ChatService(private val context: Context) {
+    private val streaming = GeminiStreamingService(context)
+    private val cancelled = AtomicBoolean(false)
+
     fun send(userText: String, callback: (String) -> Unit) {
-        Thread {
-            val decision = GeminiBrain.decide(
-                context,
-                userText,
-                AppLauncher.installedLabels(context)
-            )
-            val answer = if (decision.type == "chat") {
-                decision.value
-            } else {
-                "I can handle that as a phone action, but this chat screen currently supports conversation responses. The action router remains available through voice commands."
-            }
-            callback(answer.ifBlank { "I didn't receive a usable response." })
-        }.start()
+        sendStreaming(emptyList(), userText, false, { }, callback)
+    }
+
+    fun sendStreaming(history: List<ChatMessage>, userText: String, useWeb: Boolean, onChunk: (String) -> Unit, onDone: (String) -> Unit) {
+        cancelled.set(false)
+        streaming.stream(history, userText, useWeb,
+            onChunk = { if (!cancelled.get()) onChunk(it) },
+            onDone = { if (!cancelled.get()) onDone(it) }
+        )
+    }
+
+    fun cancel() {
+        cancelled.set(true)
     }
 }
