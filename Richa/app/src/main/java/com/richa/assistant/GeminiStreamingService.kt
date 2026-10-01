@@ -15,7 +15,7 @@ class GeminiStreamingService(private val context: Context) {
             var connection: HttpURLConnection? = null
             val full = StringBuilder()
             try {
-                val endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse"
+                val endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:streamGenerateContent?alt=sse"
                 connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
                     requestMethod = "POST"; connectTimeout = 12000; readTimeout = 60000; doOutput = true
                     setRequestProperty("Content-Type", "application/json"); setRequestProperty("x-goog-api-key", key)
@@ -27,7 +27,7 @@ class GeminiStreamingService(private val context: Context) {
                 }
                 contents.put(JSONObject().put("role", "user").put("parts", JSONArray().put(JSONObject().put("text", userText))))
                 val body = JSONObject().put("system_instruction", JSONObject().put("parts", JSONArray().put(JSONObject().put("text", "You are Richa, a personal Android AI companion. Be natural. Never claim an Android action happened unless the app executed it."))))
-                    .put("contents", contents).put("generationConfig", JSONObject().put("temperature", 0.7).put("maxOutputTokens", 1200))
+                    .put("contents", contents).put("generationConfig", JSONObject().put("maxOutputTokens", 1200))
                 if (useWeb) body.put("tools", JSONArray().put(JSONObject().put("google_search", JSONObject())))
                 connection.outputStream.use { it.write(body.toString().toByteArray(StandardCharsets.UTF_8)) }
                 val code = connection.responseCode
