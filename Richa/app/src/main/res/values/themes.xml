@@ -4,7 +4,9 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:statusBarColor">@color/richa_bg</item>
         <item name="android:navigationBarColor">@color/richa_bg</item>
+        <item name="android:windowBackground">@color/richa_bg</item>
         <item name="colorPrimary">@color/richa_accent</item>
         <item name="colorSecondary">@color/richa_accent_2</item>
+        <item name="android:windowActionModeOverlay">true</item>
     </style>
 </resources>
