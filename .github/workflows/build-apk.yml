@@ -21,6 +21,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Gradle 8.13
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
       - name: Download offline Vosk model
         working-directory: Richa
         run: |
@@ -32,11 +37,9 @@ jobs:
           rm -rf app/src/main/assets/model-en-us
           mv /tmp/vosk-model/vosk-model-small-en-us-0.15 app/src/main/assets/model-en-us
 
-      - name: Build debug APK with project wrapper
+      - name: Build debug APK
         working-directory: Richa
-        run: |
-          chmod +x gradlew
-          ./gradlew --no-daemon --stacktrace clean :app:assembleDebug
+        run: gradle --no-daemon --stacktrace clean :app:assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
