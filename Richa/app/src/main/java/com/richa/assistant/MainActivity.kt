@@ -264,20 +264,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun installNeuralVoice() {
-        if (VoiceManager(this).hasLocalNeuralVoice()) {
-            response.text = "Offline neural voice is already installed."
-            return
-        }
-        status.text = "DOWNLOADING • KOKORO VOICE"
-        response.text = "Downloading the verified ~86 MB neural voice model. This is a one-time setup; speech stays local afterward."
-        VoiceModelInstaller.install(this,
-            onProgress = { p -> runOnUiThread { response.text = "Installing offline neural voice… $p%" } },
-            onDone = { ok, message -> runOnUiThread {
-                status.text = if (ok) "OFFLINE • NEURAL VOICE READY" else "VOICE INSTALL FAILED"
-                response.text = message
-            } }
-        )
+        status.text = "OFFLINE • KOKORO READY"
+        response.text = "Kokoro-82M neural voice is bundled locally with Richa. No voice-model download is required."
     }
+
     private fun showAiSetup() {
         val input = EditText(this).apply {
             hint = "Paste Gemini API key"
