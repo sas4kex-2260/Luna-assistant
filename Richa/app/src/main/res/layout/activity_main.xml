@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="18dp">
+        android:padding="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -25,21 +25,20 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="RICHA"
+                    android:text="RICHA  ✦"
                     android:textColor="@color/richa_text"
-                    android:textSize="28sp"
+                    android:textSize="30sp"
                     android:textStyle="bold"
-                    android:letterSpacing="0.10"/>
+                    android:letterSpacing="0.08"/>
 
                 <TextView
                     android:id="@+id/statusText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="LOCAL MODE  •  READY"
+                    android:text="LOCAL COMPANION  •  READY"
                     android:textColor="@color/richa_good"
-                    android:textSize="12sp"
-                    android:letterSpacing="0.04"/>
-
+                    android:textSize="11sp"
+                    android:letterSpacing="0.05"/>
             </LinearLayout>
 
             <TextView
@@ -48,74 +47,79 @@
                 android:layout_height="wrap_content"
                 android:text="MIC OFF"
                 android:textColor="@color/richa_muted"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:padding="10dp"
                 android:background="@drawable/action_bg"/>
         </LinearLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
-            android:text="Good morning ✦"
-            android:textColor="@color/richa_text"
-            android:textSize="24sp"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="What would you like to do?"
-            android:textColor="@color/richa_muted"
-            android:textSize="14sp"
-            android:layout_marginTop="3dp"/>
-
-        <FrameLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="330dp"
-            android:layout_marginTop="8dp"
-            android:gravity="center">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/panel_bg"
+            android:padding="10dp">
 
-            <View
-                android:layout_width="230dp"
-                android:layout_height="230dp"
-                android:background="@drawable/anime_core"
-                android:alpha="0.95"/>
-
-            <ImageView
-                android:id="@+id/animeGirl"
-                android:layout_width="205dp"
-                android:layout_height="255dp"
-                android:layout_gravity="center"
-                android:src="@drawable/anime_girl"
-                android:contentDescription="Richa anime assistant avatar"/>
-
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:background="@drawable/action_bg"
-                android:paddingLeft="14dp"
-                android:paddingRight="14dp"
-                android:paddingTop="7dp"
-                android:paddingBottom="7dp">
+                android:text="YOUR OFFLINE COMPANION"
+                android:textColor="@color/richa_cyan"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="What shall we do?"
+                android:textColor="@color/richa_text"
+                android:textSize="23sp"
+                android:textStyle="bold"/>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="345dp"
+                android:layout_marginTop="2dp"
+                android:gravity="center">
+
+                <View
+                    android:layout_width="250dp"
+                    android:layout_height="250dp"
+                    android:background="@drawable/anime_core"
+                    android:alpha="0.92"/>
+
+                <ImageView
+                    android:id="@+id/animeGirl"
+                    android:layout_width="235dp"
+                    android:layout_height="295dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/anime_girl"
+                    android:contentDescription="Richa anime assistant avatar"/>
 
                 <TextView
                     android:id="@+id/orbLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tap to talk"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:text="TAP TO TALK  •  OFFLINE"
                     android:textColor="@color/richa_text"
-                    android:textSize="13sp"
-                    android:textStyle="bold"/>
-            </LinearLayout>
-        </FrameLayout>
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/action_bg"/>
+            </FrameLayout>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:orientation="vertical"
             android:background="@drawable/panel_bg">
 
@@ -125,33 +129,34 @@
                 android:layout_height="wrap_content"
                 android:text="LOCAL MEMORY  •  ON-DEVICE ONLY"
                 android:textColor="@color/richa_cyan"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:letterSpacing="0.04"/>
 
             <TextView
                 android:id="@+id/responseText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Hi, I'm Richa. I'm ready to help offline."
+                android:text="Hi, I'm Richa. Say “open WhatsApp” or tap TALK."
                 android:textColor="@color/richa_text"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:paddingTop="9dp"/>
         </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:text="Quick actions"
-            android:textColor="@color/richa_text"
-            android:textSize="15sp"
-            android:textStyle="bold"/>
+            android:layout_marginTop="16dp"
+            android:text="QUICK CONTROL"
+            android:textColor="@color/richa_muted"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="7dp">
 
             <Button
                 android:id="@+id/talkButton"
@@ -186,10 +191,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="Offline-first • No cloud AI required for current commands"
+            android:text="Offline-first  •  App launching  •  Voice commands  •  Local memory"
             android:textColor="@color/richa_muted"
-            android:textSize="11sp"
-            android:paddingTop="18dp"
+            android:textSize="10sp"
+            android:paddingTop="16dp"
             android:paddingBottom="8dp"/>
     </LinearLayout>
 </ScrollView>
