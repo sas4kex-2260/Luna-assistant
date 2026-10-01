@@ -120,7 +120,7 @@ class MainActivity : AppCompatActivity() {
         response.text = "Hey. I'm Richa. Ask me something."
 
         findViewById<Button>(R.id.fileButton).setOnClickListener { filePicker.launch(arrayOf("text/*", "application/pdf", "application/json", "text/csv")) }
-        findViewById<Button>(R.id.cameraButton).setOnClickListener { cameraPicker.launch(null) }
+        findViewById<Button>(R.id.cameraButton).setOnClickListener { launchCamera() }
         findViewById<Button>(R.id.importCompanionButton).setOnClickListener { companionPicker.launch(arrayOf("model/gltf-binary", "model/gltf+json", "application/octet-stream")) }
         findViewById<Button>(R.id.talkButton).setOnClickListener {
             chatService.cancel()
@@ -312,7 +312,14 @@ class MainActivity : AppCompatActivity() {
     private fun hasMicPermission() =
         ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 
+    private val cameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) cameraPicker.launch(null) else response.text = "Camera permission denied." }
+
     private fun requestMicPermission() = permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+
+    private fun launchCamera() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) cameraPicker.launch(null)
+        else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+    }
 
     private fun startServiceCompat(intent: Intent) {
         try {
