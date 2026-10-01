@@ -167,8 +167,9 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
     private fun handleCommand(command: String) {
         sendResponse("You: $command")
         val lower = command.lowercase(Locale.US).trim()
-        when {
-            lower == "stop listening" || lower == "stop" -> { speak("Okay. I'll stay quiet."); running.set(false) }
+        try {
+            when {
+                lower == "stop listening" || lower == "stop" -> { speak("Okay. I'll stay quiet."); running.set(false) }
             lower.contains("what time") || lower == "time" -> speak("It is ${java.text.SimpleDateFormat("h:mm a", Locale.getDefault()).format(java.util.Date())}.")
             lower.contains("what date") || lower.contains("today's date") || lower == "date" -> speak("Today is ${java.text.SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(java.util.Date())}.")
             lower.contains("battery") -> { val bm = getSystemService(BATTERY_SERVICE) as BatteryManager; speak("Your battery is ${bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)} percent.") }
@@ -186,7 +187,10 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
                 else askOnline(command)
             }
             lower.startsWith("call ") -> { startActivity(Intent(Intent.ACTION_DIAL).apply { data = android.net.Uri.parse("tel:"); addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }); speak("Opening the dialer. I won't place the call without your confirmation.") }
-            else -> askOnline(command)
+                else -> askOnline(command)
+            }
+        } catch (_: Throwable) {
+            sendResponse("I couldn't safely complete that command.")
         }
     }
 
