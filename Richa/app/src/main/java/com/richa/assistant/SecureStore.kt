@@ -23,12 +23,25 @@ object SecureStore {
         return generator.generateKey()
     }
     fun saveGeminiKey(context: Context, value: String) {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val clean = value.trim()
-        if (clean.isEmpty()) { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(DATA).apply(); return }
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, key())
-        val encoded = Base64.encodeToString(cipher.iv + cipher.doFinal(clean.toByteArray(StandardCharsets.UTF_8)), Base64.NO_WRAP)
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(DATA, encoded).apply()
+        if (clean.isEmpty()) {
+            prefs.edit().remove(DATA).apply()
+            return
+        }
+
+        try {
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.ENCRYPT_MODE, key())
+            val encoded = Base64.encodeToString(
+                cipher.iv + cipher.doFinal(clean.toByteArray(StandardCharsets.UTF_8)),
+                Base64.NO_WRAP
+            )
+            prefs.edit().putString(DATA, encoded).apply()
+        } catch (_: Throwable) {
+            // Keystore failures must not crash the UI.
+            prefs.edit().remove(DATA).apply()
+        }
     }
     fun getGeminiKey(context: Context): String? {
         val stored = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(DATA, null) ?: return null
