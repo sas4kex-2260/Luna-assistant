@@ -171,13 +171,12 @@ class MainActivity : AppCompatActivity() {
         response.text = "Thinking..."
         status.text = "THINKING • ONLINE AI"
 
-        chatService.send(text) { answer ->
-            runOnUiThread {
-                addAssistantMessage(answer)
-                response.text = answer
-                status.text = if (SecureStore.hasGeminiKey(this)) "ONLINE • GEMINI READY" else "OFFLINE • ADD GEMINI"
-            }
-        }
+        val useWeb = text.contains("latest", true) || text.contains("today", true) || text.contains("current", true) || text.contains("search web", true) || text.contains("news", true)
+        val draft = StringBuilder()
+        chatService.sendStreaming(messages.dropLast(1), text, useWeb,
+            onChunk = { chunk -> runOnUiThread { draft.append(chunk); response.text = draft.toString(); status.text = if (useWeb) "SEARCHING • WEB" else "GENERATING • STREAMING" } },
+            onDone = { answer -> runOnUiThread { addAssistantMessage(answer); response.text = answer; status.text = if (SecureStore.hasGeminiKey(this)) "ONLINE • GEMINI READY" else "OFFLINE • ADD GEMINI" } }
+        )
     }
 
     private fun addUserMessage(text: String) {
