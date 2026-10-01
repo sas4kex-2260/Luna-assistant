@@ -90,7 +90,6 @@ class KokoroVoiceProvider : VoiceProvider {
 
     override fun release() {
         stop()
-        tts?.close()
         tts = null
         scope.coroutineContext[Job]?.cancel()
     }
