@@ -8,7 +8,7 @@ import android.content.Context
  */
 interface VoiceProvider {
     fun isAvailable(context: Context): Boolean
-    fun speak(context: Context, text: String, onStarted: (() -> Unit)? = null, onFinished: (() -> Unit)? = null)
+    fun speak(context: Context, text: String, onStarted: (() -> Unit)? = null, onAudioLevel: ((Float) -> Unit)? = null, onFinished: (() -> Unit)? = null)
     fun stop()
     fun release()
 }
