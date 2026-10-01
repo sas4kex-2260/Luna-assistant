@@ -90,6 +90,9 @@ class MainActivity : AppCompatActivity() {
                         else -> "READY"
                     }
                 }
+                WakeWordService.ACTION_VOICE_LEVEL -> {
+                    companionView?.updateLipSync("A", intent.getFloatExtra("level", 0f))
+                }
                 WakeWordService.ACTION_RESPONSE -> {
                     val text = intent.getStringExtra("text") ?: ""
                     response.text = text
@@ -321,6 +324,7 @@ class MainActivity : AppCompatActivity() {
                 IntentFilter().apply {
                     addAction(WakeWordService.ACTION_STATE)
                     addAction(WakeWordService.ACTION_RESPONSE)
+                    addAction(WakeWordService.ACTION_VOICE_LEVEL)
                 },
                 ContextCompat.RECEIVER_NOT_EXPORTED
             )
