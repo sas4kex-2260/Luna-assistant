@@ -14,7 +14,6 @@ class RichaCompanionView(context: Context) : FrameLayout(context), CharacterCont
     private val surface = SurfaceView(context)
     private var viewer: ModelViewer? = null
     private var loadedFile: File? = null
-    private var talking = false
     private var requestedEmotion = CharacterController.Emotion.NEUTRAL
     private val frameCallback = object : Choreographer.FrameCallback {
         override fun doFrame(frameTimeNanos: Long) {
@@ -28,7 +27,7 @@ class RichaCompanionView(context: Context) : FrameLayout(context), CharacterCont
         surface.setBackgroundColor(Color.TRANSPARENT)
         addView(surface, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         surface.setOnTouchListener { _, event -> viewer?.onTouchEvent(event) ?: false }
-        post { viewer = ModelViewer(surface) }
+        post { if (isAttachedToWindow && viewer == null) viewer = ModelViewer(surface) }
     }
 
     override fun onAttachedToWindow() {
@@ -45,77 +44,72 @@ class RichaCompanionView(context: Context) : FrameLayout(context), CharacterCont
 
     override fun loadModel(source: Any) {
         val file = source as? File ?: return
-        if (!file.isFile) return
+        if (!file.isFile || file.length() == 0L) return
         loadedFile = file
         post {
+            if (!isAttachedToWindow) return@post
             val v = viewer ?: return@post
-            v.loadModelGlb(ByteBuffer.wrap(file.readBytes()))
-            v.transformToUnitCube()
-            v.autoPlayAnimations = true
-            playIdle()
+            runCatching {
+                v.loadModelGlb(ByteBuffer.wrap(file.readBytes()))
+                v.transformToUnitCube()
+                v.autoPlayAnimations = true
+                playIdle()
+            }
         }
     }
 
     override fun playIdle() {
-        val v = viewer ?: return
-        val animator = v.animator ?: return
+        val animator = viewer?.animator ?: return
         if (animator.animationCount > 0) {
             val names = (0 until animator.animationCount).map { animator.getAnimationName(it).lowercase() }
-            v.activeAnimationIndex = names.indexOfFirst { it.contains("idle") }.takeIf { it >= 0 } ?: 0
+            viewer?.activeAnimationIndex = names.indexOfFirst { it.contains("idle") }.takeIf { it >= 0 } ?: 0
         }
     }
 
     override fun lookAtUser() {
-        // The Filament camera follows the interactive companion view. A future face-tracker
-        // can feed precise gaze targets without changing the renderer contract.
+        // Real face/eye targeting will be mapped after inspecting the supplied GLB's eye rig.
     }
 
     override fun blink() {
-        // Uses the model's authored animation/blendshape once its actual names are inspected.
+        // Real blink blendshape/animation mapping will be added after GLB inspection.
     }
 
     override fun setEmotion(emotion: CharacterController.Emotion) {
         requestedEmotion = emotion
-        val v = viewer ?: return
-        val animator = v.animator ?: return
-        if (animator.animationCount == 0) return
+        val animator = viewer?.animator ?: return
         val key = emotion.name.lowercase()
         val index = (0 until animator.animationCount).firstOrNull {
             animator.getAnimationName(it).lowercase().contains(key)
         }
-        if (index != null) v.activeAnimationIndex = index
+        if (index != null) viewer?.activeAnimationIndex = index
     }
 
     override fun startTalking() {
-        talking = true
-        val v = viewer ?: return
-        val animator = v.animator ?: return
+        val animator = viewer?.animator ?: return
         val index = (0 until animator.animationCount).firstOrNull {
             val n = animator.getAnimationName(it).lowercase()
             n.contains("talk") || n.contains("speak")
         }
-        if (index != null) v.activeAnimationIndex = index
+        if (index != null) viewer?.activeAnimationIndex = index
     }
 
     override fun updateLipSync(viseme: String, intensity: Float) {
-        val v = viewer ?: return
-        val animator = v.animator ?: return
+        val animator = viewer?.animator ?: return
         if (animator.animationCount == 0) return
         if (intensity > 0.08f) {
             val index = (0 until animator.animationCount).firstOrNull {
                 val n = animator.getAnimationName(it).lowercase()
                 n.contains("talk") || n.contains("speak") || n.contains("mouth")
             }
-            if (index != null) v.activeAnimationIndex = index
+            if (index != null) viewer?.activeAnimationIndex = index
         } else playIdle()
     }
-    override fun stopTalking() {
-        talking = false
-        playIdle()
-    }
+
+    override fun stopTalking() = playIdle()
 
     override fun dispose() {
-        viewer?.destroyModel()
+        Choreographer.getInstance().removeFrameCallback(frameCallback)
+        viewer?.destroy()
         viewer = null
     }
 
