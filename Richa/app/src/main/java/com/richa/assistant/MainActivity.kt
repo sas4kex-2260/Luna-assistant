@@ -50,9 +50,17 @@ class MainActivity : AppCompatActivity() {
         }
         findViewById<Button>(R.id.aiButton).setOnClickListener { showAiSetup() }
         findViewById<Button>(R.id.overlayButton).setOnClickListener {
-            if (!Settings.canDrawOverlays(this)) startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
-            else { startService(Intent(this, OverlayService::class.java)); response.text = "Floating Richa bubble enabled." }
+    try {
+        if (!Settings.canDrawOverlays(this)) {
+            startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${packageName}")))
+        } else {
+            startService(Intent(this, OverlayService::class.java))
+            response.text = "Floating Richa bubble enabled."
         }
+    } catch (_: Throwable) {
+        response.text = "I couldn't enable the floating bubble safely."
+    }
+}
         status.text = if (SecureStore.hasGeminiKey(this)) "ONLINE AI • Gemini ready" else "OFFLINE CORE • Add Gemini for smart mode"
         response.text = "I'm Richa. Try: ‘open YouTube’, ‘set a timer for 10 minutes’, or ask me anything after adding online AI."
     }
@@ -75,7 +83,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun hasMicPermission(): Boolean = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
     private fun requestMicPermission() = permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-    private fun startServiceCompat(intent: Intent) = ContextCompat.startForegroundService(this, intent)
+    private fun startServiceCompat(intent: Intent) {
+    try {
+        ContextCompat.startForegroundService(this, intent)
+    } catch (_: SecurityException) {
+        response.text = "Android blocked microphone access. Keep Richa open and try again."
+        status.text = "VOICE BLOCKED BY ANDROID"
+    } catch (_: IllegalStateException) {
+        response.text = "Android did not allow the voice service to start. Try again while Richa is open."
+        status.text = "VOICE SERVICE NOT STARTED"
+    } catch (_: Throwable) {
+        response.text = "Voice service could not start safely."
+        status.text = "VOICE ERROR"
+    }
+}
 
     override fun onStart() {
         super.onStart()
