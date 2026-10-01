@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         if (bitmap == null) return@registerForActivityResult
         val file = File(cacheDir, "camera_" + System.currentTimeMillis() + ".jpg")
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 85, it) }
-        VisionService(this).analyze(Uri.fromFile(file), "Describe this image carefully and help me understand what I am looking at.") { answer ->
+        VisionService(this).analyzeFile(file, "Describe this image carefully and help me understand what I am looking at.") { answer ->
             runOnUiThread { chatInput.setText(answer); response.text = answer }
         }
     }
