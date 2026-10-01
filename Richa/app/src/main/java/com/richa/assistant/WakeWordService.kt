@@ -23,6 +23,7 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
     companion object {
         const val ACTION_ENABLE = "com.richa.assistant.ENABLE_WAKE"
         const val ACTION_TALK_NOW = "com.richa.assistant.TALK_NOW"
+        const val ACTION_INTERRUPT = "com.richa.assistant.INTERRUPT"
         const val ACTION_STATE = "com.richa.assistant.STATE"
         const val ACTION_RESPONSE = "com.richa.assistant.RESPONSE"
         private const val CHANNEL_ID = "richa_voice"
@@ -80,6 +81,7 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
         when (intent?.action) {
             ACTION_ENABLE -> startListening()
             ACTION_TALK_NOW -> startCommandMode()
+            ACTION_INTERRUPT -> { voiceManager.provider()?.stop(); tts?.stop(); sendState("Voice interrupted") }
         }
         return START_NOT_STICKY
     }
@@ -148,7 +150,7 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun startCommandMode() { forceCommand = true; if (!running.get()) startListening() }
+    private fun startCommandMode() { voiceManager.provider()?.stop(); tts?.stop(); forceCommand = true; if (!running.get()) startListening() }
 
     private fun startCommandModeInternal() {
         val m = model ?: return
@@ -243,6 +245,8 @@ class WakeWordService : Service(), TextToSpeech.OnInitListener {
 }
     private fun stopRecording() { try { audioRecord?.stop() } catch (_: Throwable) {}; audioRecord?.release(); audioRecord = null }
     private fun speak(text: String) {
+        voiceManager.provider()?.stop()
+        tts?.stop()
         sendResponse(text)
         if (voiceManager.hasLocalNeuralVoice()) {
             voiceManager.provider()?.speak(this, text)
