@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settingsPanel: View
     private lateinit var companionHost: FrameLayout
     private var companionView: RichaCompanionView? = null
+    private val faceGazeService = FaceGazeService()
 
     private val chatService by lazy { ChatService(this) }
     private val conversationStore by lazy { ConversationStore(this) }
@@ -55,6 +56,11 @@ class MainActivity : AppCompatActivity() {
         if (bitmap == null) return@registerForActivityResult
         val file = File(cacheDir, "camera_" + System.currentTimeMillis() + ".jpg")
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 85, it) }
+        faceGazeService.detect(bitmap) { gaze ->
+            runOnUiThread {
+                orbLabel.text = if (gaze == null) "FACE NOT FOUND" else "FACE " + (gaze.x * 100).toInt() + "% / " + (gaze.y * 100).toInt() + "%"
+            }
+        }
         VisionService(this).analyzeFile(file, "Describe this image carefully and help me understand what I am looking at.") { answer ->
             runOnUiThread { chatInput.setText(answer); response.text = answer }
         }
@@ -331,6 +337,12 @@ class MainActivity : AppCompatActivity() {
             )
             receiverRegistered = true
         }
+    }
+
+    override fun onDestroy() {
+        faceGazeService.close()
+        companionView?.dispose()
+        super.onDestroy()
     }
 
     override fun onStop() {
